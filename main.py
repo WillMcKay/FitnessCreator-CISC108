@@ -172,7 +172,10 @@ def Workout(state: State) -> Page:
     day_number = 1
     for day in state.week:
         content.append(Header("Day " + str(day_number) + ": " + day.name.title(), 2))
-        content.append(Table(day.workouts))
+        rows = []
+        for workout in day.workouts:
+            rows.append([workout.name.title(), workout.primarymuscle.title(), workout.equipment.title()])
+        content.append(Table(rows, header=["Exercise", "Muscle", "Equipment"]))
         day_number += 1
     content.append(Button("Back to start", "index"))
     return Page(state, content)
