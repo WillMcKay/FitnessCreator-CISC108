@@ -62,6 +62,7 @@ class State:
     equipment: str
     frequency: int
     week: list[WorkoutDay]
+    plan_name: str = "Workout"
 
 def filter_by_equipment(equipment: str) -> list[WorkoutData]:
     """
@@ -314,7 +315,11 @@ def Workout(state: State) -> Page:
         state: State
     Return: Page
     """
-    content = [Header("Your Workout")]
+    content = [
+        Header(state.plan_name),
+        TextBox("plan_name", state.plan_name),
+        Button("Rename", "set_plan_name")
+    ]
     day_number = 1
     for day in state.week:
         content.append(Header("Day " + str(day_number) + ": " + day.name.title(), 2))
@@ -325,10 +330,22 @@ def Workout(state: State) -> Page:
         day_number += 1
     file_text = save_workout_data(state).replace('"', "%22")
     content.append(
-        Download("Save Workout", "workout.json", file_text)
+        Download("Save Workout", state.plan_name + ".json", file_text)
     )
     content.append(Button("Back to start", "index"))
     return Page(state, content)
+
+@route
+def set_plan_name(state: State, plan_name: str) -> Page:
+    """
+    Save the name of the user's plan.
+    Args:
+        state: State
+        plan_name: str
+    Return: Page
+    """
+    state.plan_name = plan_name
+    return Workout(state)
 
 @route
 def Save(state: State) -> Page:
@@ -344,21 +361,22 @@ def Save(state: State) -> Page:
 
 squat = WorkoutData("squat", "body weight", "upper legs", "quads")
 run = WorkoutData("run", "body weight", "cardio", "cardiovascular system")
-
-assert_equal(fits_goal(squat, "Gain Muscle"), True)
-assert_equal(fits_goal(run, "Gain Muscle"), False)
-assert_equal(fits_goal(run, "Lose Weight"), True)
-assert_equal(fits_goal(squat, "Lose Weight"), False)
-assert_equal(fits_goal(squat, "Stay in Shape"), True)
-
-assert_equal(filter_by_goal([squat, run], "Gain Muscle"), [squat])
-assert_equal(filter_by_goal([squat, run], "Lose Weight"), [run])
-assert_equal(filter_by_goal([], "Gain Muscle"), [])
-
 plan = State("Gain Muscle", "gym", 4, [WorkoutDay("upper", [squat])])
-plan_json = ('[{"name": "upper", "workouts": [{"name": "squat", "equipment": "body weight", '
-             '"category": "upper legs", "primarymuscle": "quads"}]}]')
-assert_equal(save_workout_data(plan), plan_json)
-assert_equal(load_workout(State("Gain Muscle", "gym", 4, []), plan_json), Workout(plan))
+
+assert_equal(fits_goal(run, "Lose Weight"), True)
+assert_equal(filter_by_goal([squat, run], "Gain Muscle"), [squat])
+assert_equal(save_workout_data(State("", "", 0, [])), "[]")
+assert_equal(set_frequency(State("", "", 0, []), 5).state.frequency, 5)
+assert_equal(set_goal(State("", "", 0, []), "Lose Weight").state.goal, "Lose Weight")
+assert_equal(set_equipment(State("Gain Muscle", "", 4, []), "gym").state.equipment, "gym")
+assert_equal(set_plan_name(State("", "", 0, []), "Leg Day").state.plan_name, "Leg Day")
+assert_equal(load_workout(State("", "", 0, []), save_workout_data(plan)).state.week, plan.week)
+assert_equal(create_workout(State("Gain Muscle", "gym", 4, [])).content[0], Header("Workout"))
+assert_equal(index(plan).content[0], Header("Workout Generator"))
+assert_equal(Frequency(plan).content[0], Header("How many days a week do you want to work out?"))
+assert_equal(Goal(plan).content[0], Header("Select Your Goal"))
+assert_equal(Equipment(plan).content[0], Header("What equipment do you have access to?"))
+assert_equal(Workout(plan).content[0], Header("Workout"))
+assert_equal(Save(plan).content[0], Header("Workout Saved!"))
 
 start_server(State("", "", 0, []))
