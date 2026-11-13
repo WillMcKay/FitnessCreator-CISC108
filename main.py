@@ -61,6 +61,12 @@ class State:
     week: list[WorkoutDay]
 
 def filter_by_equipment(equipment: str) -> list[WorkoutData]:
+    """
+    Get all exercises that use the given equipment.
+    Args:
+        equipment: str
+    Returns: list[WorkoutData]
+    """
     workouts = []
     for exercise in exercises:
         if equipment == "gym" or exercise["equipment"] in EQUIPMENT_GROUPS[equipment]:
@@ -70,6 +76,13 @@ def filter_by_equipment(equipment: str) -> list[WorkoutData]:
     return workouts
 
 def fits_goal(workout: WorkoutData, goal: str) -> bool:
+    """
+    Check if a workout matches the user's goal.
+    Args:
+        workout: WorkoutData
+        goal: str
+    Returns: bool
+    """
     if goal == "Gain Muscle":
         return workout.category != "cardio"
     if goal == "Lose Weight":
@@ -77,6 +90,13 @@ def fits_goal(workout: WorkoutData, goal: str) -> bool:
     return True
 
 def filter_by_goal(workouts: list[WorkoutData], goal: str) -> list[WorkoutData]:
+    """
+    Keep only the workouts that fit the user's goal.
+    Args:
+        workouts: list[WorkoutData]
+        goal: str
+    Returns: list[WorkoutData]
+    """
     filtered = []
     for workout in workouts:
         if fits_goal(workout, goal):
@@ -84,6 +104,13 @@ def filter_by_goal(workouts: list[WorkoutData], goal: str) -> list[WorkoutData]:
     return filtered
 
 def get_day_workouts(workouts: list[WorkoutData], day: str) -> list[WorkoutData]:
+    """
+    Pick 5 workouts for one day, preferring that day's muscles.
+    Args:
+        workouts: list[WorkoutData]
+        day: str
+    Returns: list[WorkoutData]
+    """
     muscles = DAY_MUSCLES[day]
     matching = []
     others = []
@@ -100,6 +127,13 @@ def get_day_workouts(workouts: list[WorkoutData], day: str) -> list[WorkoutData]
     return matching + random.sample(others, needed)
 
 def get_week(workouts: list[WorkoutData], frequency: int) -> list[WorkoutDay]:
+    """
+    Build a week of workout days.
+    Args:
+        workouts: list[WorkoutData]
+        frequency: int
+    Returns: list[WorkoutDay]
+    """
     week = []
     for day in SPLITS[frequency]:
         week.append(WorkoutDay(day, get_day_workouts(workouts, day)))
@@ -107,6 +141,12 @@ def get_week(workouts: list[WorkoutData], frequency: int) -> list[WorkoutDay]:
 
 @route
 def create_workout(state: State) -> Page:
+    """
+    Generate the user's weekly plan and show it.
+    Args:
+        state: State
+    Returns: Page
+    """
     workouts = filter_by_equipment(state.equipment)
     workouts = filter_by_goal(workouts, state.goal)
     state.week = get_week(workouts, state.frequency)
@@ -114,21 +154,48 @@ def create_workout(state: State) -> Page:
 
 @route
 def set_frequency(state: State, frequency: int) -> Page:
+    """
+    Save how many days a week the user wants to work out.
+    Args:
+        state: State
+        frequency: int
+    Returns: Page
+    """
     state.frequency = frequency
     return Goal(state)
 
 @route
 def set_goal(state: State, goal: str) -> Page:
+    """
+    Save the user's goal.
+    Args:
+        state: State
+        goal: str
+    Returns: Page
+    """
     state.goal = goal
     return Equipment(state)
 
 @route
 def set_equipment(state: State, equipment: str) -> Page:
+    """
+    Save the user's equipment and create their workout.
+    Args:
+        state: State
+        equipment: str
+    Returns: Page
+    """
     state.equipment = equipment
     return create_workout(state)
 
 @route
 def index(state: State) -> Page:
+    """
+    Show the home page.
+    Args:
+        state: State
+    Returns: Page
+    """
     return Page(state, [
         Header("Workout Generator"),
         "Create a new workout",
@@ -140,6 +207,12 @@ def index(state: State) -> Page:
 
 @route
 def Frequency(state: State) -> Page:
+    """
+    Ask how many days a week the user wants to work out.
+    Args:
+        state: State
+    Returns: Page
+    """
     return Page(state, [
         Header("How many days a week do you want to work out?"),
         Button("4 days", "set_frequency", [Argument("frequency", 4)]),
@@ -150,6 +223,12 @@ def Frequency(state: State) -> Page:
 
 @route
 def Goal(state: State) -> Page:
+    """
+    Ask for the user's fitness goal.
+    Args:
+        state: State
+    Returns: Page
+    """
     return Page(state, [
         Header("Select Your Goal"),
         Button("Gain Muscle", "set_goal", [Argument("goal", "Gain Muscle")]),
@@ -159,6 +238,12 @@ def Goal(state: State) -> Page:
 
 @route
 def Equipment(state: State) -> Page:
+    """
+    Ask what equipment the user has.
+    Args:
+        state: State
+    Returns: Page
+    """
     return Page(state, [
         Header("What equipment do you have access to?"),
         Button("Full Gym", "set_equipment", [Argument("equipment", "gym")]),
@@ -168,6 +253,12 @@ def Equipment(state: State) -> Page:
 
 @route
 def Workout(state: State) -> Page:
+    """
+    Show the weekly plan with a table for each day.
+    Args:
+        state: State
+    Returns: Page
+    """
     content = [Header("Your Workout")]
     day_number = 1
     for day in state.week:
@@ -182,6 +273,12 @@ def Workout(state: State) -> Page:
 
 @route
 def Save(state: State) -> Page:
+    """
+    Show a message that the workout was saved.
+    Args:
+        state: State
+    Returns: Page
+    """
     return Page(state, [
         Header("Workout Saved!")
     ])
