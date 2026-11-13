@@ -1,4 +1,5 @@
 from drafter import *
+from bakery import assert_equal
 from dataclasses import dataclass
 import random
 from exercise_data import exercises
@@ -65,7 +66,7 @@ def filter_by_equipment(equipment: str) -> list[WorkoutData]:
     Get all exercises that use the given equipment.
     Args:
         equipment: str
-    Returns: list[WorkoutData]
+    Return: list[WorkoutData]
     """
     workouts = []
     for exercise in exercises:
@@ -81,7 +82,7 @@ def fits_goal(workout: WorkoutData, goal: str) -> bool:
     Args:
         workout: WorkoutData
         goal: str
-    Returns: bool
+    Return: bool
     """
     if goal == "Gain Muscle":
         return workout.category != "cardio"
@@ -95,7 +96,7 @@ def filter_by_goal(workouts: list[WorkoutData], goal: str) -> list[WorkoutData]:
     Args:
         workouts: list[WorkoutData]
         goal: str
-    Returns: list[WorkoutData]
+    Return: list[WorkoutData]
     """
     filtered = []
     for workout in workouts:
@@ -109,7 +110,7 @@ def get_day_workouts(workouts: list[WorkoutData], day: str) -> list[WorkoutData]
     Args:
         workouts: list[WorkoutData]
         day: str
-    Returns: list[WorkoutData]
+    Return: list[WorkoutData]
     """
     muscles = DAY_MUSCLES[day]
     matching = []
@@ -132,7 +133,7 @@ def get_week(workouts: list[WorkoutData], frequency: int) -> list[WorkoutDay]:
     Args:
         workouts: list[WorkoutData]
         frequency: int
-    Returns: list[WorkoutDay]
+    Return: list[WorkoutDay]
     """
     week = []
     for day in SPLITS[frequency]:
@@ -145,7 +146,7 @@ def create_workout(state: State) -> Page:
     Generate the user's weekly plan and show it.
     Args:
         state: State
-    Returns: Page
+    Return: Page
     """
     workouts = filter_by_equipment(state.equipment)
     workouts = filter_by_goal(workouts, state.goal)
@@ -159,7 +160,7 @@ def set_frequency(state: State, frequency: int) -> Page:
     Args:
         state: State
         frequency: int
-    Returns: Page
+    Return: Page
     """
     state.frequency = frequency
     return Goal(state)
@@ -171,7 +172,7 @@ def set_goal(state: State, goal: str) -> Page:
     Args:
         state: State
         goal: str
-    Returns: Page
+    Return: Page
     """
     state.goal = goal
     return Equipment(state)
@@ -183,7 +184,7 @@ def set_equipment(state: State, equipment: str) -> Page:
     Args:
         state: State
         equipment: str
-    Returns: Page
+    Return: Page
     """
     state.equipment = equipment
     return create_workout(state)
@@ -194,7 +195,7 @@ def index(state: State) -> Page:
     Show the home page.
     Args:
         state: State
-    Returns: Page
+    Return: Page
     """
     return Page(state, [
         Header("Workout Generator"),
@@ -211,7 +212,7 @@ def Frequency(state: State) -> Page:
     Ask how many days a week the user wants to work out.
     Args:
         state: State
-    Returns: Page
+    Return: Page
     """
     return Page(state, [
         Header("How many days a week do you want to work out?"),
@@ -227,7 +228,7 @@ def Goal(state: State) -> Page:
     Ask for the user's fitness goal.
     Args:
         state: State
-    Returns: Page
+    Return: Page
     """
     return Page(state, [
         Header("Select Your Goal"),
@@ -242,7 +243,7 @@ def Equipment(state: State) -> Page:
     Ask what equipment the user has.
     Args:
         state: State
-    Returns: Page
+    Return: Page
     """
     return Page(state, [
         Header("What equipment do you have access to?"),
@@ -257,7 +258,7 @@ def Workout(state: State) -> Page:
     Show the weekly plan with a table for each day.
     Args:
         state: State
-    Returns: Page
+    Return: Page
     """
     content = [Header("Your Workout")]
     day_number = 1
@@ -277,10 +278,23 @@ def Save(state: State) -> Page:
     Show a message that the workout was saved.
     Args:
         state: State
-    Returns: Page
+    Return: Page
     """
     return Page(state, [
         Header("Workout Saved!")
     ])
+
+squat = WorkoutData("squat", "body weight", "upper legs", "quads")
+run = WorkoutData("run", "body weight", "cardio", "cardiovascular system")
+
+assert_equal(fits_goal(squat, "Gain Muscle"), True)
+assert_equal(fits_goal(run, "Gain Muscle"), False)
+assert_equal(fits_goal(run, "Lose Weight"), True)
+assert_equal(fits_goal(squat, "Lose Weight"), False)
+assert_equal(fits_goal(squat, "Stay in Shape"), True)
+
+assert_equal(filter_by_goal([squat, run], "Gain Muscle"), [squat])
+assert_equal(filter_by_goal([squat, run], "Lose Weight"), [run])
+assert_equal(filter_by_goal([], "Gain Muscle"), [])
 
 start_server(State("", "", 0, []))
