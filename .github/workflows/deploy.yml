@@ -123,6 +123,10 @@ jobs:
       - name: Build Drafter v2 site
         id: build_site
         shell: bash
+        env:
+          # Let main.py import sibling modules (e.g. exercise_data.py)
+          # while Drafter compiles it inside uvx's isolated environment.
+          PYTHONPATH: ${{ github.workspace }}
         run: |
           set -euo pipefail
 
