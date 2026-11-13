@@ -1,0 +1,69 @@
+PROMPT: Explain how to incorperate saving functionality into the project
+
+You can add a Save Workout button that lets users download their generated workout as a .json file. Then, they can upload that file later to load the same workout.
+
+Drafter has a built-in Download component, so you don't need to write a file-saving function yourself.
+
+I'll show you how to add this using your existing code.
+1. Add a function to convert your workout into JSON
+First, import Python's json module at the top of your file:
+import json
+
+
+
+Then add this function:
+def save_workout_data(state: State) -> str:    workout_data = []    for day in state.week:        day_data = []        for workout in day.workouts:            day_data.append({                "name": workout.name,                "equipment": workout.equipment,                "category": workout.category,                "primarymuscle": workout.primarymuscle            })        workout_data.append({            "name": day.name,            "workouts": day_data        })    return json.dumps(workout_data)
+
+
+
+What this does:
+- Goes through each day in the workout.
+- Goes through each exercise in that day.
+- Stores the exercise information.
+- Converts everything into JSON text.
+2. Add the Download button to your Workout page
+Find your existing Workout route.
+
+Replace the bottom part:
+content.append(Button("Back to start", "index"))return Page(state, content)
+
+
+
+With:
+content.append(    Download("Save Workout", "workout.json", save_workout_data(state)))content.append(Button("Back to start", "index"))return Page(state, content)
+
+
+
+Now users will see a button that downloads their workout as workout.json.
+3. Add a route to load saved workouts
+You already have this in your index route:
+FileUpload("upload", accept=".json")
+
+
+
+However, you need a route to handle the uploaded file.
+
+Add this:
+@routedef load_workout(state: State, upload: str) -> Page:    workout_data = json.loads(upload)    week = []    for day in workout_data:        workouts = []        for workout in day["workouts"]:            workouts.append(                WorkoutData(                    workout["name"],                    workout["equipment"],                    workout["category"],                    workout["primarymuscle"]                )            )        week.append(WorkoutDay(day["name"], workouts))    state.week = week    return Workout(state)
+
+
+
+4. Connect your upload button to the route
+Change your index route to:
+@routedef index(state: State) -> Page:    return Page(state, [        Header("Workout Generator"),        "Create a new workout",        Button("Create", "Frequency"),        LineBreak(),        "Load an existing workout",        FileUpload("upload", accept=".json"),        Button("Load Workout", "load_workout")    ])
+
+
+
+Now users can:
+1. Generate a workout.
+2. Download it as a JSON file.
+3. Return to the homepage.
+4. Upload their saved JSON file.
+5. Click Load Workout to see their previous workout.
+5. One important detail
+Your WorkoutData dataclass includes:
+completed: bool = False
+
+
+
+Currently, the JSON-saving function doesn't save this value because your app doesn't yet have a way to mark exercises as completed.

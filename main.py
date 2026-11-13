@@ -2,18 +2,20 @@ from drafter import *
 from bakery import assert_equal
 from dataclasses import dataclass
 import random
+import json
 from exercise_data import exercises
 
 set_website_title("Fitness Creator")
 set_site_information(
     author="Will McKay",
     description="Create a fitness plan based on your needs.",
-    sources="Drafter docs and google",
+    sources="Drafter docs, LLM.txt",
     planning=["plan.pdf", "design.pdf"],
     links=["https://github.com/WillMcKay/FitnessCreator-CISC108"]
 )
 hide_debug_information()
 set_website_framed(False)
+
 EQUIPMENT_GROUPS = {
     "bodyweight": ["body weight", "assisted"],
     "free weights": [
@@ -140,6 +142,29 @@ def get_week(workouts: list[WorkoutData], frequency: int) -> list[WorkoutDay]:
         week.append(WorkoutDay(day, get_day_workouts(workouts, day)))
     return week
 
+def save_workout_data(state: State) -> str:
+    """
+    Turn the user's week of workouts into JSON text.
+    Args:
+        state: State
+    Return: str
+    """
+    workout_data = []
+    for day in state.week:
+        day_data = []
+        for workout in day.workouts:
+            day_data.append({
+                "name": workout.name,
+                "equipment": workout.equipment,
+                "category": workout.category,
+                "primarymuscle": workout.primarymuscle
+            })
+        workout_data.append({
+            "name": day.name,
+            "workouts": day_data
+        })
+    return json.dumps(workout_data)
+
 @route
 def create_workout(state: State) -> Page:
     """
@@ -203,8 +228,37 @@ def index(state: State) -> Page:
         Button("Create", "Frequency"),
         LineBreak(),
         "Load an existing workout",
-        FileUpload("upload", accept=".json")
+        FileUpload("upload", accept=".json"),
+        Button("Load Workout", "load_workout")
     ])
+
+@route
+def load_workout(state: State, upload: str) -> Page:
+    """
+    Load a saved workout from the uploaded JSON file.
+    Args:
+        state: State
+        upload: str
+    Return: Page
+    """
+    if upload == "":
+        return index(state)
+    workout_data = json.loads(upload)
+    week = []
+    for day in workout_data:
+        workouts = []
+        for workout in day["workouts"]:
+            workouts.append(
+                WorkoutData(
+                    workout["name"],
+                    workout["equipment"],
+                    workout["category"],
+                    workout["primarymuscle"]
+                )
+            )
+        week.append(WorkoutDay(day["name"], workouts))
+    state.week = week
+    return Workout(state)
 
 @route
 def Frequency(state: State) -> Page:
@@ -269,6 +323,10 @@ def Workout(state: State) -> Page:
             rows.append([workout.name.title(), workout.primarymuscle.title(), workout.equipment.title()])
         content.append(Table(rows, header=["Exercise", "Muscle", "Equipment"]))
         day_number += 1
+    file_text = save_workout_data(state).replace('"', "%22")
+    content.append(
+        Download("Save Workout", "workout.json", file_text)
+    )
     content.append(Button("Back to start", "index"))
     return Page(state, content)
 
@@ -296,5 +354,11 @@ assert_equal(fits_goal(squat, "Stay in Shape"), True)
 assert_equal(filter_by_goal([squat, run], "Gain Muscle"), [squat])
 assert_equal(filter_by_goal([squat, run], "Lose Weight"), [run])
 assert_equal(filter_by_goal([], "Gain Muscle"), [])
+
+plan = State("Gain Muscle", "gym", 4, [WorkoutDay("upper", [squat])])
+plan_json = ('[{"name": "upper", "workouts": [{"name": "squat", "equipment": "body weight", '
+             '"category": "upper legs", "primarymuscle": "quads"}]}]')
+assert_equal(save_workout_data(plan), plan_json)
+assert_equal(load_workout(State("Gain Muscle", "gym", 4, []), plan_json), Workout(plan))
 
 start_server(State("", "", 0, []))
