@@ -15,6 +15,19 @@ set_site_information(
 )
 hide_debug_information()
 set_website_framed(False)
+set_website_style("none")
+add_website_css("""
+body { max-width: 600px; margin: auto; padding: 16px; font-weight: 700; color: #4B4B4B; }
+h1 { text-align: center; font-weight: 900; }
+h2 { color: #58CC02; }
+button, a[download] { display: block; width: 100%; margin: 12px 0; padding: 14px; border: none; border-radius: 16px;
+    background: #58CC02; box-shadow: 0 4px 0 #58A700; color: white; font: inherit; text-transform: uppercase;
+    text-align: center; text-decoration: none; cursor: pointer; }
+button:active { transform: translateY(4px); box-shadow: none; }
+.choice { background: white; color: inherit; border: 2px solid #E5E5E5; box-shadow: 0 4px 0 #E5E5E5; text-transform: none; text-align: left; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px; border-bottom: 2px solid #E5E5E5; text-align: left; }
+""")
 
 EQUIPMENT_GROUPS = {
     "bodyweight": ["body weight", "assisted"],
@@ -271,10 +284,10 @@ def Frequency(state: State) -> Page:
     """
     return Page(state, [
         Header("How many days a week do you want to work out?"),
-        Button("4 days", "set_frequency", [Argument("frequency", 4)]),
-        Button("5 days", "set_frequency", [Argument("frequency", 5)]),
-        Button("6 days", "set_frequency", [Argument("frequency", 6)]),
-        Button("7 days", "set_frequency", [Argument("frequency", 7)]),
+        Button("4 days", "set_frequency", [Argument("frequency", 4)], classes="choice"),
+        Button("5 days", "set_frequency", [Argument("frequency", 5)], classes="choice"),
+        Button("6 days", "set_frequency", [Argument("frequency", 6)], classes="choice"),
+        Button("7 days", "set_frequency", [Argument("frequency", 7)], classes="choice"),
     ])
 
 @route
@@ -287,9 +300,9 @@ def Goal(state: State) -> Page:
     """
     return Page(state, [
         Header("Select Your Goal"),
-        Button("Gain Muscle", "set_goal", [Argument("goal", "Gain Muscle")]),
-        Button("Lose Weight", "set_goal", [Argument("goal", "Lose Weight")]),
-        Button("Stay in Shape", "set_goal", [Argument("goal", "Stay in Shape")])
+        Button("Gain Muscle", "set_goal", [Argument("goal", "Gain Muscle")], classes="choice"),
+        Button("Lose Weight", "set_goal", [Argument("goal", "Lose Weight")], classes="choice"),
+        Button("Stay in Shape", "set_goal", [Argument("goal", "Stay in Shape")], classes="choice")
     ])
 
 @route
@@ -302,9 +315,9 @@ def Equipment(state: State) -> Page:
     """
     return Page(state, [
         Header("What equipment do you have access to?"),
-        Button("Full Gym", "set_equipment", [Argument("equipment", "gym")]),
-        Button("Free Weights", "set_equipment", [Argument("equipment", "free weights")]),
-        Button("Bodyweight", "set_equipment", [Argument("equipment", "bodyweight")])
+        Button("Full Gym", "set_equipment", [Argument("equipment", "gym")], classes="choice"),
+        Button("Free Weights", "set_equipment", [Argument("equipment", "free weights")], classes="choice"),
+        Button("Bodyweight", "set_equipment", [Argument("equipment", "bodyweight")], classes="choice")
     ])
 
 @route
