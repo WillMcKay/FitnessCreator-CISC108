@@ -24,6 +24,11 @@ button, a[download] { display: block; width: 100%; margin: 12px 0; padding: 14px
     background: #58CC02; box-shadow: 0 4px 0 #58A700; color: white; font: inherit; text-transform: uppercase;
     text-align: center; text-decoration: none; cursor: pointer; }
 button:active { transform: translateY(4px); box-shadow: none; }
+input { display: block; box-sizing: border-box; width: 100%; margin: 8px 0; padding: 12px 16px; border: 2px solid #E5E5E5;
+    border-radius: 12px; background: #F7F7F7; color: inherit; font: inherit; }
+input:focus { outline: none; border-color: #1CB0F6; background: white; }
+input::file-selector-button { margin-right: 12px; padding: 8px 14px; border: 2px solid #E5E5E5; border-radius: 10px;
+    background: white; color: inherit; font: inherit; cursor: pointer; }
 .choice { background: white; color: inherit; border: 2px solid #E5E5E5; box-shadow: 0 4px 0 #E5E5E5; text-transform: none; text-align: left; }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 10px; border-bottom: 2px solid #E5E5E5; text-align: left; }
